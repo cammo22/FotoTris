@@ -463,8 +463,8 @@
 
 </body>
 <script>
-  const params   = new URLSearchParams(window.location.search);
-  const link     = params.get('link') || '#';
+  const hash = window.location.hash.slice(1); // rimuove il '#' iniziale
+  const link = hash ? decodeURIComponent(hash) : '#';
   const DURATION = 30000;
 
   const barEl = document.getElementById('bar');
