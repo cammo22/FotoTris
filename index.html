@@ -3,407 +3,514 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FotoTris — Generatore QR</title>
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <title>FotoTris — Caricamento album</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --gold:  #c8a96e;
+      --gold2: #e2c99a;
+      --bg:    #0a0a0a;
+      --bg2:   #141414;
+      --bg3:   #1c1c1c;
+      --text:  #e8e0d4;
+      --muted: #666;
+    }
+
+    html { scroll-behavior: smooth; }
 
     body {
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: #0f0f0f;
-      color: #e8e0d4;
+      width: 100%;
       min-height: 100vh;
-    }
-
-    header {
-      background: #1a1a1a;
-      border-bottom: 1px solid #2a2a2a;
-      padding: 18px 40px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    header img { height: 48px; width: 48px; object-fit: contain; }
-
-    header .brand {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       display: flex;
       flex-direction: column;
+      align-items: center;
+      padding: 44px 20px 120px; /* bottom padding = height of fixed bar */
+      overflow-x: hidden;
     }
 
-    header .brand span:first-child {
-      font-size: 1.4rem;
-      font-weight: 700;
-      letter-spacing: 2px;
-      color: #c8a96e;
+    /* ===================== BRAND ===================== */
+    .brand {
+      text-align: center;
+      margin-bottom: 36px;
+      animation: fadeUp .9s cubic-bezier(.22,1,.36,1) both;
     }
 
-    header .brand span:last-child {
-      font-size: 0.72rem;
-      letter-spacing: 3px;
-      color: #888;
+    .brand img {
+      width: 74px;
+      height: 74px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto 14px;
+    }
+
+    .brand h1 {
+      font-size: clamp(2rem, 8vw, 3rem);
+      font-weight: 800;
+      letter-spacing: 8px;
+      color: var(--gold);
       text-transform: uppercase;
+      line-height: 1;
     }
 
-    .container {
-      max-width: 780px;
-      margin: 48px auto;
-      padding: 0 24px;
+    .brand p {
+      font-size: 0.72rem;
+      letter-spacing: 4px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-top: 8px;
     }
 
-    h1 {
-      font-size: 1.6rem;
-      font-weight: 600;
-      color: #e8e0d4;
-      margin-bottom: 6px;
+    /* ===================== INFO CARDS ===================== */
+    .cards {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 36px;
     }
 
-    .subtitle {
-      color: #777;
-      font-size: 0.9rem;
-      margin-bottom: 40px;
-    }
-
-    /* ---- CARD ---- */
     .card {
-      background: #1a1a1a;
-      border: 1px solid #2a2a2a;
-      border-radius: 12px;
-      padding: 32px;
-      margin-bottom: 24px;
-    }
-
-    .card-title {
-      font-size: 0.72rem;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: #c8a96e;
-      margin-bottom: 24px;
-    }
-
-    label {
-      display: block;
-      font-size: 0.82rem;
-      color: #aaa;
-      margin-bottom: 8px;
-      letter-spacing: 0.5px;
-    }
-
-    input[type="url"],
-    input[type="text"] {
-      width: 100%;
-      background: #111;
-      border: 1px solid #333;
-      border-radius: 8px;
-      padding: 12px 16px;
-      color: #e8e0d4;
-      font-size: 0.95rem;
-      outline: none;
-      transition: border-color 0.2s;
-      margin-bottom: 20px;
-    }
-
-    input[type="url"]:focus,
-    input[type="text"]:focus {
-      border-color: #c8a96e;
-    }
-
-    input::placeholder { color: #444; }
-
-    .hint {
-      font-size: 0.78rem;
-      color: #555;
-      margin-top: -14px;
-      margin-bottom: 20px;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 13px 28px;
-      border-radius: 8px;
-      border: none;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-primary {
-      background: #c8a96e;
-      color: #0f0f0f;
-      width: 100%;
-      justify-content: center;
-      font-size: 1rem;
-    }
-
-    .btn-primary:hover { background: #d9bb82; transform: translateY(-1px); }
-    .btn-primary:active { transform: translateY(0); }
-
-    .btn-secondary {
-      background: #222;
-      color: #c8a96e;
-      border: 1px solid #c8a96e33;
-    }
-
-    .btn-secondary:hover { background: #2a2a2a; }
-
-    /* ---- OUTPUT ---- */
-    #output { display: none; }
-
-    .qr-wrapper {
+      background: var(--bg3);
+      border: 1px solid #242424;
+      border-radius: 14px;
+      padding: 18px 20px;
       display: flex;
-      gap: 40px;
       align-items: flex-start;
-    }
-
-    @media (max-width: 560px) {
-      .qr-wrapper { flex-direction: column; align-items: center; }
-    }
-
-    #qr-box {
-      flex-shrink: 0;
-      background: #fff;
-      border-radius: 12px;
-      padding: 16px;
-      width: 220px;
-      height: 220px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    #qr-box canvas, #qr-box img {
-      display: block;
-    }
-
-    .qr-info { flex: 1; }
-
-    .qr-info h3 {
-      font-size: 1.05rem;
-      color: #e8e0d4;
-      margin-bottom: 12px;
-    }
-
-    .url-display {
-      background: #111;
-      border: 1px solid #2a2a2a;
-      border-radius: 8px;
-      padding: 12px 16px;
-      font-size: 0.78rem;
-      color: #666;
-      word-break: break-all;
-      margin-bottom: 20px;
-      font-family: monospace;
-    }
-
-    .url-display strong { color: #c8a96e; display: block; margin-bottom: 4px; font-family: inherit; font-size: 0.7rem; letter-spacing: 1px; }
-
-    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
-
-    /* ---- STEPS ---- */
-    .steps {
-      counter-reset: step;
-      list-style: none;
-    }
-
-    .steps li {
-      counter-increment: step;
-      display: flex;
       gap: 16px;
-      margin-bottom: 18px;
-      align-items: flex-start;
+      animation: fadeUp .7s cubic-bezier(.22,1,.36,1) both;
     }
 
-    .steps li::before {
-      content: counter(step);
+    .card:nth-child(1) { animation-delay: .1s; }
+    .card:nth-child(2) { animation-delay: .2s; }
+    .card:nth-child(3) { animation-delay: .3s; }
+    .card:nth-child(4) { animation-delay: .4s; }
+    .card:nth-child(5) { animation-delay: .5s; }
+
+    .card-icon {
       flex-shrink: 0;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: #c8a96e22;
-      border: 1px solid #c8a96e44;
-      color: #c8a96e;
-      font-size: 0.8rem;
-      font-weight: 700;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: #c8a96e12;
+      border: 1px solid #c8a96e30;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    .steps li p { font-size: 0.85rem; color: #999; line-height: 1.5; padding-top: 4px; }
-    .steps li p strong { color: #e8e0d4; }
+    .card-icon svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--gold);
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
 
-    .tag {
+    .card-body h3 {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .card-body p {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .card-body .tag {
       display: inline-block;
-      background: #c8a96e22;
-      color: #c8a96e;
+      margin-top: 8px;
+      background: #c8a96e18;
+      color: var(--gold);
       border: 1px solid #c8a96e33;
-      border-radius: 4px;
-      padding: 1px 7px;
+      border-radius: 99px;
+      padding: 2px 10px;
+      font-size: 0.68rem;
+      letter-spacing: 1px;
+    }
+
+    /* ===================== SOCIALS ===================== */
+    .socials {
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .socials-label {
+      text-align: center;
+      font-size: 0.65rem;
+      letter-spacing: 3px;
+      color: #3a3a3a;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .social-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .social-btn {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      background: var(--bg3);
+      border: 1px solid #242424;
+      border-radius: 14px;
+      padding: 14px 16px;
+      text-decoration: none;
+      color: var(--text);
+      font-size: 0.86rem;
+      font-weight: 500;
+      transition: background .18s, border-color .18s, transform .13s;
+    }
+
+    .social-btn:hover  { background: #222; border-color: #c8a96e44; transform: translateY(-2px); }
+    .social-btn:active { transform: translateY(0); }
+
+    .social-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .social-icon svg { width: 17px; height: 17px; }
+
+    .ig .social-icon { background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
+    .fb .social-icon { background: #1877f2; }
+    .tt .social-icon { background: #111; border: 1px solid #2a2a2a; }
+    .wa .social-icon { background: #25d366; }
+
+    .s-text span:first-child { display: block; }
+    .s-sub { font-size: 0.7rem; color: var(--muted); display: block; margin-top: 1px; }
+
+    .footer-line {
+      text-align: center;
+      font-size: 0.6rem;
+      color: #2e2e2e;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 24px;
+      padding-bottom: 4px;
+    }
+
+    /* ===================== FIXED BOTTOM BAR ===================== */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: linear-gradient(to top, #0a0a0a 70%, transparent);
+      padding: 20px 24px 28px;
+      z-index: 50;
+    }
+
+    .bar-inner {
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* loading state */
+    .bar-loading { display: block; }
+    .bar-done    { display: none; }
+
+    .bar-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .bar-msg {
       font-size: 0.72rem;
-      font-family: monospace;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .bar-pct {
+      font-size: 0.8rem;
+      color: var(--gold);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 3px;
+      background: #1e1e1e;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #7a5c20, var(--gold), var(--gold2));
+      border-radius: 99px;
+      box-shadow: 0 0 12px #c8a96e66;
+      position: relative;
+      transition: width .08s linear;
+    }
+
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      top: 0; right: 0; bottom: 0;
+      width: 60px;
+      background: linear-gradient(90deg, transparent, #fff3, transparent);
+      animation: shimmer 1.4s infinite;
+    }
+
+    @keyframes shimmer {
+      from { transform: translateX(-60px); }
+      to   { transform: translateX(20px); }
+    }
+
+    /* done state — open button */
+    .btn-open {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 16px;
+      background: var(--gold);
+      color: #0a0a0a;
+      text-decoration: none;
+      border-radius: 14px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      box-shadow: 0 4px 28px #c8a96e55;
+      animation: popIn .45s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    .btn-open:active { transform: scale(.98); }
+
+    .btn-open svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: translateY(10px) scale(.96); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* ===================== ANIMS ===================== */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
 
-<header>
-  <img src="logo.png" alt="FotoTris logo" />
+  <!-- BRAND -->
   <div class="brand">
-    <span>FOTOTRIS</span>
-    <span>Generatore QR</span>
-  </div>
-</header>
-
-<div class="container">
-
-  <h1>Genera il tuo QR Code</h1>
-  <p class="subtitle">Crea un codice QR personalizzato con pagina di caricamento FotoTris.</p>
-
-  <!-- CONFIGURAZIONE -->
-  <div class="card">
-    <div class="card-title">01 — Configurazione</div>
-
-    <label>URL del tuo sito dove carichi i file</label>
-    <input type="text" id="base-url" placeholder="https://cammo22.github.io/fototris" value="https://cammo22.github.io/fototris" />
-    <p class="hint">Es. <span class="tag">https://fototris.it</span> — qui caricare anche <span class="tag">viewer.html</span> e <span class="tag">logo.png</span></p>
-
-    <label>Link Google Foto / Album</label>
-    <input type="url" id="photos-url" placeholder="https://photos.app.goo.gl/..." value="https://photos.app.goo.gl/PTjGGnWZB5qMV34b7" />
-
-    <label>Nome cliente <span style="color:#555">(opzionale, solo per te)</span></label>
-    <input type="text" id="client-name" placeholder="Es. Matrimonio Rossi 2024" />
-
-    <button class="btn btn-primary" onclick="generateQR()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h1v1h-1zM17 14h1v1h-1zM20 14h1v1h-1zM14 17h1v1h-1zM17 17h1v1h-1zM20 17h1v1h-1zM14 20h1v1h-1zM17 20h1v1h-1zM20 20h1v1h-1z"/></svg>
-      Genera QR Code
-    </button>
+    <img src="logo.png" alt="FotoTris" />
+    <h1>FotoTris</h1>
+    <p>Fotografia professionale</p>
   </div>
 
-  <!-- OUTPUT -->
-  <div class="card" id="output">
-    <div class="card-title">02 — QR Code Generato</div>
+  <!-- INFO CARDS -->
+  <div class="cards">
 
-    <div class="qr-wrapper">
-      <div id="qr-box"></div>
+    <div class="card" id="c1">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </div>
+      <div class="card-body">
+        <h3>Fotografo Professionista</h3>
+        <p>Ogni scatto racconta una storia unica. Passione, tecnica e cura per ogni servizio fotografico.</p>
+        <span class="tag">Dal 2018</span>
+      </div>
+    </div>
 
-      <div class="qr-info">
-        <h3 id="client-label">QR Code pronto</h3>
+    <div class="card" id="c2">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>
+      </div>
+      <div class="card-body">
+        <h3>Matrimoni &amp; Cerimonie</h3>
+        <p>Immortaliamo il giorno più bello della tua vita con discrezione, eleganza e uno stile senza tempo.</p>
+        <span class="tag">Reportage • Ritratti • Video</span>
+      </div>
+    </div>
 
-        <div class="url-display">
-          <strong>URL nel QR</strong>
-          <span id="final-url-display"></span>
+    <div class="card" id="c3">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      </div>
+      <div class="card-body">
+        <h3>Album &amp; Stampe di Qualità</h3>
+        <p>Le tue foto in alta risoluzione sempre disponibili. Album digitali scaricabili e stampe professionali su richiesta.</p>
+        <span class="tag">Alta risoluzione • Scaricabile</span>
+      </div>
+    </div>
+
+    <div class="card" id="c4">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      </div>
+      <div class="card-body">
+        <h3>Ritratti &amp; Famiglia</h3>
+        <p>Servizi fotografici personalizzati per ogni fase della vita: gravidanza, neonati, prima infanzia, famiglia.</p>
+        <span class="tag">Su appuntamento</span>
+      </div>
+    </div>
+
+    <div class="card" id="c5">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 015.13 12.7 19.79 19.79 0 012.06 4.11 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+      </div>
+      <div class="card-body">
+        <h3>Prenota il tuo Servizio</h3>
+        <p>Contattaci per disponibilità e preventivi. Rispondiamo entro 24 ore. Seguici sui social per ispirazione e ultime novità.</p>
+        <span class="tag">Rispondiamo entro 24h</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SOCIALS -->
+  <div class="socials">
+    <div class="socials-label">Seguici</div>
+    <div class="social-grid">
+
+      <a href="https://instagram.com/fototris" target="_blank" rel="noopener" class="social-btn ig">
+        <div class="social-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
         </div>
+        <div class="s-text">
+          <span>Instagram</span>
+          <span class="s-sub">@fototris</span>
+        </div>
+      </a>
 
-        <div class="actions">
-          <button class="btn btn-secondary" onclick="downloadQR()">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Scarica PNG
-          </button>
-          <button class="btn btn-secondary" onclick="previewViewer()">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            Anteprima cliente
-          </button>
+      <a href="https://facebook.com/fototris" target="_blank" rel="noopener" class="social-btn fb">
+        <div class="social-icon">
+          <svg viewBox="0 0 24 24" fill="#fff"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+        </div>
+        <div class="s-text">
+          <span>Facebook</span>
+          <span class="s-sub">FotoTris</span>
+        </div>
+      </a>
+
+      <a href="https://tiktok.com/@fototris" target="_blank" rel="noopener" class="social-btn tt">
+        <div class="social-icon">
+          <svg viewBox="0 0 24 24" fill="#fff"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.2 8.2 0 004.79 1.53V6.77a4.85 4.85 0 01-1.02-.08z"/></svg>
+        </div>
+        <div class="s-text">
+          <span>TikTok</span>
+          <span class="s-sub">@fototris</span>
+        </div>
+      </a>
+
+      <a href="https://wa.me/39XXXXXXXXXX" target="_blank" rel="noopener" class="social-btn wa">
+        <div class="social-icon">
+          <svg viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        </div>
+        <div class="s-text">
+          <span>WhatsApp</span>
+          <span class="s-sub">Contattaci</span>
+        </div>
+      </a>
+
+    </div>
+    <div class="footer-line">© FotoTris — Tutti i diritti riservati</div>
+  </div>
+
+  <!-- FIXED BOTTOM BAR -->
+  <div class="bottom-bar">
+    <div class="bar-inner">
+
+      <!-- stato: caricamento -->
+      <div class="bar-loading" id="state-loading">
+        <div class="bar-row">
+          <span class="bar-msg" id="msg">Preparazione album...</span>
+          <span class="bar-pct" id="pct">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="bar"></div>
         </div>
       </div>
+
+      <!-- stato: pronto -->
+      <div class="bar-done" id="state-done">
+        <a href="#" id="btn-open" class="btn-open">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+            <polyline points="15 3 21 3 21 9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+          Apri il tuo album
+        </a>
+      </div>
+
     </div>
   </div>
 
-  <!-- ISTRUZIONI -->
-  <div class="card">
-    <div class="card-title">Come funziona</div>
-    <ol class="steps">
-      <li><p>Carica <strong>viewer.html</strong> e <strong>logo.png</strong> sul tuo sito (stessa cartella).</p></li>
-      <li><p>Inserisci l'URL del sito nel campo sopra (es. <span class="tag">https://fototris.it</span>) e il link Google Foto.</p></li>
-      <li><p>Clicca <strong>Genera QR Code</strong> e scarica il PNG.</p></li>
-      <li><p>Il cliente scannerizza il QR → vede la pagina FotoTris con animazione → apre l'album.</p></li>
-    </ol>
-  </div>
-
-</div>
-
-<script>
-  let currentUrl = '';
-
-  function generateQR() {
-    const baseUrl = document.getElementById('base-url').value.trim().replace(/\/$/, '');
-    const photosUrl = document.getElementById('photos-url').value.trim();
-    const clientName = document.getElementById('client-name').value.trim();
-
-    if (!photosUrl) {
-      alert('Inserisci il link Google Foto.');
-      return;
-    }
-
-    if (!baseUrl) {
-      alert('Inserisci l\'URL del tuo sito.');
-      return;
-    }
-
-    const encoded = encodeURIComponent(photosUrl);
-    const clientEncoded = encodeURIComponent(clientName || '');
-    currentUrl = `${baseUrl}/viewer.html?link=${encoded}${clientName ? '&n=' + clientEncoded : ''}`;
-
-    // Clear previous QR
-    const box = document.getElementById('qr-box');
-    box.innerHTML = '';
-
-    new QRCode(box, {
-      text: currentUrl,
-      width: 188,
-      height: 188,
-      colorDark: '#000000',
-      colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.H
-    });
-
-    document.getElementById('final-url-display').textContent = currentUrl;
-    document.getElementById('client-label').textContent = clientName ? `QR Code — ${clientName}` : 'QR Code pronto';
-    document.getElementById('output').style.display = 'block';
-    document.getElementById('output').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  function downloadQR() {
-    const canvas = document.querySelector('#qr-box canvas');
-    if (!canvas) { alert('Genera prima un QR.'); return; }
-
-    // Draw QR on a larger canvas with white padding
-    const size = 512;
-    const pad = 40;
-    const out = document.createElement('canvas');
-    out.width = size + pad * 2;
-    out.height = size + pad * 2;
-    const ctx = out.getContext('2d');
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, out.width, out.height);
-    ctx.drawImage(canvas, pad, pad, size, size);
-
-    const clientName = document.getElementById('client-name').value.trim();
-    const filename = clientName
-      ? `QR_${clientName.replace(/\s+/g, '_')}.png`
-      : 'QR_FotoTris.png';
-
-    out.toBlob(blob => {
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = filename;
-      a.click();
-    });
-  }
-
-  function previewViewer() {
-    if (!currentUrl) { alert('Genera prima un QR.'); return; }
-    // Open viewer.html locally with the link parameter
-    const photosUrl = document.getElementById('photos-url').value.trim();
-    const clientName = document.getElementById('client-name').value.trim();
-    const encoded = encodeURIComponent(photosUrl);
-    const clientEncoded = encodeURIComponent(clientName || '');
-    const localUrl = `viewer.html?link=${encoded}${clientName ? '&n=' + clientEncoded : ''}`;
-    window.open(localUrl, '_blank');
-  }
-</script>
-
 </body>
+<script>
+  const params   = new URLSearchParams(window.location.search);
+  const link     = params.get('link') || '#';
+  const DURATION = 30000;
+
+  const barEl = document.getElementById('bar');
+  const pctEl = document.getElementById('pct');
+  const msgEl = document.getElementById('msg');
+
+  const messages = [
+    { at:  0, text: 'Preparazione album...' },
+    { at: 20, text: 'Caricamento foto...' },
+    { at: 50, text: 'Elaborazione immagini...' },
+    { at: 78, text: 'Ottimizzazione qualità...' },
+    { at: 94, text: 'Quasi pronto...' },
+    { at: 99, text: 'Completato!' },
+  ];
+
+  const start = performance.now();
+
+  function ease(t) {
+    return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+  }
+
+  function tick(now) {
+    const linear = Math.min((now - start) / DURATION, 1);
+    const value  = ease(linear) * 100;
+
+    barEl.style.width = value + '%';
+    pctEl.textContent = Math.floor(value) + '%';
+
+    for (const m of messages) {
+      if (value >= m.at) msgEl.textContent = m.text;
+    }
+
+    if (linear < 1) {
+      requestAnimationFrame(tick);
+    } else {
+      barEl.style.width = '100%';
+      pctEl.textContent = '100%';
+      msgEl.textContent = 'Completato!';
+      setTimeout(() => {
+        document.getElementById('btn-open').href = link;
+        document.getElementById('state-loading').style.display = 'none';
+        document.getElementById('state-done').style.display = 'block';
+      }, 400);
+    }
+  }
+
+  requestAnimationFrame(tick);
+</script>
 </html>
